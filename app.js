@@ -41,7 +41,7 @@ const OFFICIAL_BADGE_URL = `${OFFICIAL_CERTIFICATION_URL}/generar-carnet-digital
 const MAP_CENTER = [6.2442, -75.5812];
 let data;
 try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialData; } catch { data = initialData; }
-function applyDataDefaults() { data.settings ||= {}; data.settings.logoData ||= ''; data.settings.faviconData ||= ''; data.emergencies ||= []; data.people.forEach(entry => { entry.courses = (entry.courses || []).map(course => typeof course === 'string' ? course : course.name || 'Curso registrado'); entry.carnetStatus ||= 'Sin consultar'; }); }
+function applyDataDefaults() { data.settings ||= {}; data.settings.logoData ||= ''; data.settings.faviconData ||= ''; data.emergencies ||= []; data.deletedPeople ||= []; data.people.forEach(entry => { entry.courses = (entry.courses || []).map(course => typeof course === 'string' ? course : course.name || 'Curso registrado'); entry.carnetStatus ||= 'Sin consultar'; }); }
 applyDataDefaults();
 let activeView = 'inicio';
 let peopleFilter = 'Todos';
@@ -62,7 +62,7 @@ const save = () => { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); do
 function applyBranding() { const image = document.querySelector('#brandLogoImage'); const brand = document.querySelector('.brand'); const favicon = document.querySelector('#appFavicon'); if (!image || !brand || !favicon) return; const logoData = data.settings.logoData || ''; image.hidden = !logoData; if (logoData) image.src = logoData; brand.classList.toggle('custom-logo', Boolean(logoData)); favicon.href = data.settings.faviconData || 'favicon.svg'; }
 const dateText = (date, options = { day: 'numeric', month: 'short' }) => new Intl.DateTimeFormat('es-CO', options).format(new Date(`${date}T12:00:00`));
 const fullDateText = (date) => new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${date}T12:00:00`));
-const person = (id) => data.people.find(item => item.id === id);
+const person = (id) => data.people.find(item => item.id === id) || data.deletedPeople.find(item => item.id === id);
 const item = (id) => data.inventory.find(entry => entry.id === id);
 const avatarClass = (name) => ['avatar-red', 'avatar-green', 'avatar-blue', 'avatar-amber', 'avatar-slate'][[...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 5];
 const recordActivity = (text) => { data.activities.unshift({ text, who: data.settings.coordinator, date: new Date().toISOString() }); data.activities = data.activities.slice(0, 12); };
@@ -214,6 +214,13 @@ function setupEmergencyActions() {
     button.insertAdjacentElement('afterend', deleteButton);
   });
 }
+function setupPeopleActions() {
+  document.querySelectorAll('[data-action="edit-person"]').forEach(button => {
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button'; deleteButton.className = 'mini-action danger-action'; deleteButton.dataset.action = 'delete-person'; deleteButton.dataset.id = button.dataset.id; deleteButton.textContent = 'Eliminar';
+    button.insertAdjacentElement('afterend', deleteButton);
+  });
+}
 function render() {
   if (emergencyMap) { emergencyMap.remove(); emergencyMap = null; emergencyMapMarkers = {}; }
   save();
@@ -222,6 +229,7 @@ function render() {
   const renderers = { inicio: renderDashboard, personal: renderPeople, asistencia: renderAttendance, dotacion: renderGear, inventario: renderInventory, certificaciones: renderCertifications, emergencias: renderEmergencies, reportes: renderReports, configuracion: renderSettings };
   page.innerHTML = renderers[activeView]();
   if (activeView === 'emergencias') { setupEmergencyActions(); requestAnimationFrame(initEmergencyMap); }
+  if (activeView === 'personal') setupPeopleActions();
   if (activeView === 'configuracion') page.querySelector('.settings-grid').insertAdjacentHTML('afterbegin', renderBrandingPanel());
 }
 function personForm(existing = {}) {
@@ -270,6 +278,19 @@ function setView(view) { activeView = view; globalQuery = ''; document.querySele
 function handleAction(action, id) {
   if (action === 'add-person') personForm();
   else if (action === 'edit-person') { const entry = person(id); if (entry) personForm(entry); }
+  else if (action === 'delete-person') {
+    const entry = data.people.find(item => item.id === id);
+    if (!entry) return;
+    const assignedGear = data.gear.some(record => record.personId === id);
+    const warning = assignedGear ? ' Sus dotaciones quedarán asociadas a su nombre en el historial hasta registrar la devolución.' : '';
+    if (!window.confirm(`¿Eliminar a ${entry.name} del directorio? Se borrarán sus registros de asistencia.${warning}`)) return;
+    if (assignedGear && !data.deletedPeople.some(item => item.id === id)) data.deletedPeople.push({ id: entry.id, name: entry.name });
+    data.people = data.people.filter(item => item.id !== id);
+    Object.values(data.attendance).forEach(day => { delete day[id]; });
+    data.activities.forEach(activity => { activity.text = activity.text.replaceAll(entry.name, 'voluntario eliminado'); });
+    recordActivity(`Se eliminó del directorio al voluntario ${entry.id}`);
+    save(); render(); toast('Voluntario eliminado del directorio.');
+  }
   else if (action === 'view-certification') showCertification(id);
   else if (action === 'add-emergency') emergencyForm();
   else if (action === 'clear-map-point') { if (!pendingEmergencyLocation) return; pendingEmergencyLocation = null; if (selectedEmergencyMarker && emergencyMap) emergencyMap.removeLayer(selectedEmergencyMarker); selectedEmergencyMarker = null; emergencyMap?.closePopup(); const coordinates = document.querySelector('#selectedCoordinates'); if (coordinates) coordinates.textContent = 'Sin punto seleccionado'; const clearButton = document.querySelector('[data-action="clear-map-point"]'); if (clearButton) clearButton.disabled = true; }

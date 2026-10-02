@@ -7,7 +7,7 @@ Aplicación web local para gestionar voluntariado, certificaciones, asistencia, 
 Abre `index.html` en un navegador moderno. No requiere instalación ni conexión a un servidor. La primera vista incluye registros de demostración editables.
 
 - **Resumen:** indicadores de la unidad, asistencia del día, agenda y alertas de existencias.
-- **Personal:** directorio, búsqueda, filtros, alta y edición de voluntarios; exportación CSV.
+- **Personal:** directorio, búsqueda, filtros, alta, edición y eliminación confirmada de voluntarios; exportación CSV. Las asistencias de la persona eliminada se borran; las dotaciones entregadas permanecen en el historial con la referencia mínima necesaria hasta su devolución.
 - **Asistencia:** registro por fecha con estados presente, ausente y excusa; exportación CSV.
 - **Dotación:** entrega y devolución de elementos con actualización automática del inventario.
 - **Inventario:** control de existencias, mínimos, categorías, ubicación y movimientos.
