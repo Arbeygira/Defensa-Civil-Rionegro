@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f5f2">
+  <meta name="description" content="Gestión operativa de personal, asistencia, dotación, inventario y emergencias de la Defensa Civil Colombiana.">
+  <link rel="icon" id="appFavicon" type="image/svg+xml" href="favicon.svg">
+  <title>Gestión operativa | Defensa Civil Colombiana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#inicio" aria-label="Inicio Defensa Civil">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <img class="brand-logo-image" id="brandLogoImage" alt="Logo personalizado de la unidad" hidden>
+        <span class="brand-copy"><strong>DEFENSA CIVIL</strong><small>COLOMBIANA · GESTIÓN</small></span>
+      </a>
+      <div class="unit-switch"><span class="unit-dot"></span><span><small>UNIDAD OPERATIVA</small><strong id="unitLabel">Junta Medellín Centro</strong></span><span class="chevron">⌄</span></div>
+      <nav class="nav-list" aria-label="Navegación principal">
+        <span class="nav-caption">OPERACIÓN</span>
+        <button class="nav-item active" data-view="inicio"><span class="nav-icon">▦</span>Resumen <span class="nav-active"></span></button>
+        <button class="nav-item" data-view="personal"><span class="nav-icon">♙</span>Personal <span class="nav-count" id="peopleCount">0</span></button>
+        <button class="nav-item" data-view="asistencia"><span class="nav-icon">◷</span>Asistencia</button>
+        <button class="nav-item" data-view="dotacion"><span class="nav-icon">◈</span>Dotación</button>
+        <button class="nav-item" data-view="inventario"><span class="nav-icon">▤</span>Inventario</button>
+        <button class="nav-item" data-view="certificaciones"><span class="nav-icon">▣</span>Certificaciones</button>
+        <button class="nav-item" data-view="emergencias"><span class="nav-icon">△</span>Emergencias</button>
+        <span class="nav-caption nav-caption-lower">GESTIÓN</span>
+        <button class="nav-item" data-view="reportes"><span class="nav-icon">▥</span>Reportes</button>
+        <button class="nav-item" data-view="configuracion"><span class="nav-icon">⚙</span>Configuración</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sync-status"><span class="sync-dot"></span><span>Datos guardados en este equipo</span></div>
+        <button class="user-card" id="profileButton"><span class="avatar avatar-red">AC</span><span><strong>Administrador</strong><small>Coordinación de unidad</small></span><span class="more">•••</span></button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="menuButton" aria-label="Abrir navegación">☰</button>
+        <div class="breadcrumbs"><span>Unidad operativa</span><b>/</b><strong id="breadcrumbLabel">Resumen</strong></div>
+        <div class="top-actions">
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="Buscar persona o elemento" aria-label="Buscar"><kbd>⌘ K</kbd></label>
+          <button class="icon-button notification-button" id="notificationButton" aria-label="Notificaciones">♧<i></i></button>
+          <span class="top-divider"></span><span class="date-label" id="todayLabel"></span>
+        </div>
+      </header>
+
+      <div class="page-content" id="pageContent"></div>
+    </main>
+  </div>
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <div class="modal-backdrop" id="modalBackdrop" hidden></div>
+</body>
+</html>
